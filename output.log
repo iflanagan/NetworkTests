@@ -1,0 +1,7 @@
+Starting network connectivity test
+##################################
+No Proxy host:port provided
+We can curl ondemand.saucelabs.com:443
+Can curl saucelabs.com
+we have connectivity to https 443
+Able to ping: saucelabs.com

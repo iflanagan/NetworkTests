@@ -1,0 +1,113 @@
+#!/bin/bash 
+
+# Author: Ian Flanagan SauceLabs 2020
+# Script will perform a series of tests and redirect various parts to an outpufil file 
+# called output.log
+
+# steps to execute (this only works on mac/linux)
+# 1. download file 2.) set permissions chmod 755 networkConnectivyTest 3.) run it ./networkConnectivyTest 4.) you 
+# can add a proxy host:port by doing this: ./networkConnectivyTest <proxyhost> <proxyport>
+
+# Define Variables here 
+
+mySLURL=saucelabs.com
+myoutputfile=output.log
+delay=2
+proxyhost=$1
+proxyport=$2
+
+# Define Functions here 
+
+function filecheck
+ {
+       clear 
+  if [ -e $myoutputfile ]; then
+
+        echo "The File: $myoutputfile  exists. lets delete it"
+	#sleep 5
+        rm -rf $myoutputfile 
+       # exit 0
+  else
+        echo "The file: $myoutputfile  doesnt exist."
+	# sleep 5
+       # exit 1
+
+  fi
+
+}
+
+filecheck
+
+echo "Starting network connectivity test" >> $myoutputfile
+echo "##################################" >> $myoutputfile
+
+if [ -n "$1" ] && [ -n "$2" ]; then
+
+    echo "Proxy host:" $1 " and port: " $2 "were sent via command line" 
+    
+	    if (curl -v $1:$2 https://ondemand.saucelabs.com:443/wd/hub/status); then 
+
+	    	echo "We can curl ondemand.saucelabs.com:443 using proxyhost:" $1 " and port: " $2 >> $myoutputfile
+
+	    else
+	    	echo "We can't curl ondemand.saucelabs.com:443 using proxyhost:" $1 " and port: " $2 >> $myoutputfile
+
+	    fi 	
+
+	    if nc -zw1 saucelabs.com 443; then
+		   echo ""
+		   echo "we have connectivity to https 443" >> $myoutputfile
+		else 
+		   echo "we don't have connectivity to https 443" >> $myoutputfile   
+		fi
+
+		ping -q -c5 $mySLURL > /dev/null
+		 
+		if [ $? -eq 0 ]; then
+
+	        echo ""
+			echo "Able to ping: " $mySLURL >> $myoutputfile 
+		else 
+			echo "Unable to ping: "  $mySLURL >> $myoutputfile
+		fi
+
+
+else
+	
+
+	echo "No Proxy host:port provided" >> $myoutputfile
+
+	if (curl -v https://ondemand.saucelabs.com:443/wd/hub/status); then 
+	   echo "We can curl ondemand.saucelabs.com:443" >> $myoutputfile
+	fi
+
+
+	if (curl -v https://saucelabs.com/rest/v1/info/status); then
+	   echo "" 
+	   echo "Can curl saucelabs.com" >> $myoutputfile
+	fi 
+
+
+	if nc -zw1 saucelabs.com 443; then
+	   echo ""
+	   echo "we have connectivity to https 443" >> $myoutputfile
+	fi
+
+
+	ping -q -c5 $mySLURL > /dev/null
+	 
+	if [ $? -eq 0 ]; then
+
+        echo ""
+		echo "Able to ping: "$mySLURL >> $myoutputfile 
+	else 
+		echo "Unable to ping: "$mySLURL >> $myoutputfile
+	fi
+
+
+	
+
+fi  
+   
+
+
